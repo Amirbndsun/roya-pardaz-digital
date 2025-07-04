@@ -1,73 +1,131 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Download, RotateCcw, Sparkles } from "lucide-react";
+import { GeneratedStory } from "@/services/openai";
+import { GeneratedImage } from "@/services/imageGeneration";
+import { PDFGeneratorService } from "@/services/pdfGenerator";
+import { toast } from "sonner";
 
 interface StoryResultProps {
-  story: string;
+  story: GeneratedStory;
+  images: GeneratedImage[];
   onNewDream: () => void;
 }
 
-export function StoryResult({ story, onNewDream }: StoryResultProps) {
-  const handleDownloadPDF = () => {
-    // This will be implemented with actual PDF generation later
-    alert("قابلیت دانلود PDF به‌زودی اضافه خواهد شد!");
-  };
+export function StoryResult({ story, images, onNewDream }: StoryResultProps) {
+  const pdfService = new PDFGeneratorService();
 
-  const handleShareStory = () => {
-    // This will be implemented with sharing functionality later
-    alert("قابلیت اشتراک‌گذاری به‌زودی اضافه خواهد شد!");
+  const handleDownloadPDF = async () => {
+    try {
+      await pdfService.generatePDF({ story, images });
+      toast.success("فایل PDF با موفقیت دانلود شد!");
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error("خطا در تولید فایل PDF");
+    }
   };
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Header */}
       <Card className="backdrop-blur-sm bg-card/80 border-primary/20">
         <CardHeader className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Badge variant="secondary" className="bg-dream-star/20 text-primary">
-              ✨ داستان جادویی
-            </Badge>
-          </div>
-          <CardTitle className="text-2xl bg-gradient-dream bg-clip-text text-transparent">
-            داستان خواب شما
+          <CardTitle className="text-3xl bg-gradient-dream bg-clip-text text-transparent flex items-center justify-center gap-2">
+            <Sparkles className="w-8 h-8" />
+            {story.title}
           </CardTitle>
+          <p className="text-muted-foreground">
+            داستان رویای شما آماده است! هم‌اکنون می‌توانید آن را به صورت PDF دانلود کنید.
+          </p>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="prose prose-lg max-w-none text-right" dir="rtl">
-            <div className="bg-gradient-soft p-6 rounded-lg border border-primary/10">
-              <p className="text-foreground leading-relaxed whitespace-pre-line">
-                {story}
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="dream" onClick={handleDownloadPDF}>
-              📄 دانلود PDF
-            </Button>
-            <Button variant="magic" onClick={handleShareStory}>
-              🔗 اشتراک‌گذاری
-            </Button>
-            <Button variant="outline" onClick={onNewDream}>
-              🌙 خواب جدید
-            </Button>
-          </div>
+        <CardContent className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button 
+            onClick={handleDownloadPDF}
+            variant="dream" 
+            size="lg"
+            className="flex items-center gap-2"
+          >
+            <Download className="w-5 h-5" />
+            دانلود کتاب PDF
+          </Button>
+          <Button 
+            onClick={onNewDream}
+            variant="outline" 
+            size="lg"
+            className="flex items-center gap-2"
+          >
+            <RotateCcw className="w-5 h-5" />
+            داستان جدید
+          </Button>
         </CardContent>
       </Card>
-      
-      {/* Placeholder for generated image */}
+
+      {/* Story Chapters */}
+      <div className="space-y-6">
+        {story.chapters.map((chapter, index) => {
+          const chapterImage = images.find(img => img.chapter === index + 1);
+          
+          return (
+            <Card key={index} className="backdrop-blur-sm bg-card/80 border-primary/20">
+              <CardHeader>
+                <CardTitle className="text-xl text-primary text-right">
+                  {chapter.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Chapter Image */}
+                {chapterImage && (
+                  <div className="w-full h-64 bg-gradient-soft rounded-lg overflow-hidden border border-primary/10">
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                      <div className="text-center">
+                        <Sparkles className="w-12 h-12 mx-auto mb-2 animate-glow" />
+                        <p>تصویر فصل {index + 1}</p>
+                        <p className="text-sm opacity-70">در حال بارگذاری...</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Chapter Content */}
+                <div className="prose prose-lg max-w-none text-right" dir="rtl">
+                  {chapter.content.split('\n\n').map((paragraph, pIndex) => (
+                    <p key={pIndex} className="mb-4 leading-relaxed text-foreground">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Footer Actions */}
       <Card className="backdrop-blur-sm bg-card/80 border-primary/20">
-        <CardHeader>
-          <CardTitle className="text-xl text-center">
-            🎨 تصویر داستان
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="aspect-video bg-gradient-soft rounded-lg border border-primary/10 flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <p className="text-lg mb-2">🖼️</p>
-              <p>تصویر بر اساس داستان شما به‌زودی تولید خواهد شد</p>
-            </div>
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              onClick={handleDownloadPDF}
+              variant="dream" 
+              size="xl"
+              className="flex items-center gap-2"
+            >
+              <Download className="w-5 h-5" />
+              دانلود کتاب کامل PDF
+            </Button>
+            <Button 
+              onClick={onNewDream}
+              variant="magic" 
+              size="xl"
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="w-5 h-5" />
+              ساخت داستان جدید
+            </Button>
           </div>
+          <p className="text-center text-sm text-muted-foreground mt-4">
+            داستان شما شامل {story.chapters.length} فصل و {images.length} تصویر زیبا است
+          </p>
         </CardContent>
       </Card>
     </div>

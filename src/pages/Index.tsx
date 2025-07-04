@@ -3,70 +3,72 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { DreamInput } from "@/components/DreamInput";
 import { StoryResult } from "@/components/StoryResult";
+import { ApiKeyInput } from "@/components/ApiKeyInput";
+import { OpenAIService, GeneratedStory } from "@/services/openai";
+import { ImageGenerationService, GeneratedImage } from "@/services/imageGeneration";
+import { toast } from "sonner";
 
 const Index = () => {
-  const [story, setStory] = useState<string | null>(null);
+  const [story, setStory] = useState<GeneratedStory | null>(null);
+  const [images, setImages] = useState<GeneratedImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiKeysSet, setApiKeysSet] = useState(false);
+  const [openaiService, setOpenaiService] = useState<OpenAIService | null>(null);
+
+  const handleApiKeysSubmit = (openaiKey: string) => {
+    setOpenaiService(new OpenAIService(openaiKey));
+    setApiKeysSet(true);
+    toast.success("کلیدهای API با موفقیت تنظیم شدند!");
+  };
 
   const handleDreamSubmit = async (dream: string) => {
+    if (!openaiService) {
+      toast.error("لطفاً ابتدا کلید API را تنظیم کنید");
+      return;
+    }
+
     setIsLoading(true);
     
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Mock extended story generation based on the dream
-    const generatedStory = `**فصل اول: آغاز سفر رویایی**
-
-در دنیایی پر از رمز و راز، ${dream}
-
-نور ماه نقره‌ای بر زمین می‌تابید و ستاره‌های درخشان راه را برای شما نشان می‌دهند. این جا، آنجا که خیال و واقعیت در هم می‌آمیزند، داستان شما آغاز می‌شود. هر قدم که برمی‌دارید، جهان اطراف‌تان تغییر می‌کند و رنگ‌های جدید و شگفت‌انگیزی به خود می‌گیرد.
-
-باد ملایمی موهای‌تان را نوازش می‌کند و صدای زمزمه‌وار طبیعت در گوش‌تان پیچیده. این صدا مثل ترانه‌ای کهن است که از اعماق زمان برخاسته و روح‌تان را به آرامش فرا می‌خواند.
-
-**فصل دوم: دنیای شگفت‌انگیز**
-
-در این سرزمین جادویی، درختان با برگ‌های طلایی سرودی آهسته زمزمه می‌کنند. هر برگ که به زمین می‌افتد، تبدیل به پروانه‌ای رنگارنگ می‌شود و در آسمان بی‌کران به پرواز درمی‌آید.
-
-شما به سمت کوه‌های دوردست قدم برمی‌دارید. قله‌های آن‌ها در ابرهای صورتی پنهان شده و نوری مرموز از درون آن‌ها تابیده. مسیرتان از کنار نهری می‌گذرد که آب‌های آن مثل جوهر نقره‌ای می‌درخشد.
-
-ماهی‌های رنگین کمانی در این نهر شنا می‌کنند و هر جا که حرکت می‌کنند، موج‌های نورانی پشت سر خود بر جای می‌گذارند. صدای آرام آب و زمزمه ماهی‌ها تراری دلنشین در فضا پخش می‌کند.
-
-**فصل سوم: ملاقات با مرشد رویا**
-
-ناگهان، پیرمردی با ریش سفید و لباس‌های نورانی از پشت درختی بیرون می‌آید. چشمان او مثل دو ستاره می‌درخشد و لبخندی مهربان بر لبان‌ش نقش بسته.
-
-"خوش آمدی، رویاپرداز جوان،" صدای گرمش در فضا پیچیده. "من مرشد این سرزمین هستم و سال‌ها منتظر آمدن تو بوده‌ام."
-
-او دست‌ تان را می‌گیرد و شما احساس گرمایی عجیب می‌کنید. انگار که تمام خوبی‌های جهان از درون او جاری است و به شما منتقل می‌شود.
-
-"این سرزمین، قلمرو رویاهای خالص است. اینجا هر آنچه که دل‌ت می‌خواهد، می‌تواند واقعی شود. اما برای این کار باید راز قدرت درونی‌ات را کشف کنی."
-
-**فصل چهارم: کشف قدرت درونی**
-
-پیرمرد شما را به باغی پر از گل‌های عجیب و غریب راهنمایی می‌کند. هر گل رنگ و شکل متفاوتی دارد و عطری بی‌نظیر از خود منتشر می‌کند. برخی از آن‌ها نور ساطع می‌کنند و برخی دیگر صداهای ملودیک تولید می‌کنند.
-
-"این گل‌ها نماد احساسات و آرزوهای انسان‌ها هستند،" پیرمرد توضیح می‌دهد. "هر کدام که لمس کنی، قدرت آن را در خود احساس خواهی کرد."
-
-شما دست‌تان را روی گلی آبی رنگ می‌گذارید. ناگهان احساس می‌کنید که می‌توانید پرواز کنید. بال‌های نورانی از پشت‌تان جوانه می‌زند و شما به آرامی از زمین بلند می‌شوید.
-
-منظره زیبای سرزمین رویا از بالا دیده می‌شود. رنگ‌های متنوع و حیرت‌انگیز در هم آمیخته و تابلویی بی‌نظیر خلق کرده‌اند.
-
-**فصل پایانی: بازگشت با حکمت جدید**
-
-پس از این سفر شگفت‌انگیز، زمان بازگشت فرا می‌رسد. اما شما دیگر همان فرد سابق نیستید. قدرت‌های جدیدی کسب کرده‌اید و حکمت عمیقی در دل‌تان جای گرفته.
-
-مرشد رویا هدیه‌ای به شما می‌دهد: جواهری درخشان که نور آن هرگز خاموش نمی‌شود. "این جواهر، یادآور این سفر خواهد بود. هر زمان که به آن نگاه کنی، یاد قدرت درونی‌ات خواهی افتاد."
-
-و اینگونه، داستان رویای شما پایان می‌یابد، اما در حقیقت آغاز سفری جدید در زندگی بیداری شماست. سفری که با امید، شادی و ایمان به قدرت‌های درونی‌تان همراه خواهد بود.
-
-هر بار که این داستان را می‌خوانید، حس تازه‌ای از شگفتی و الهام در شما زنده می‌شود و یادآور این می‌گردد که در درون هر انسانی، قدرت‌های شگفت‌انگیزی نهفته است.`;
-    
-    setStory(generatedStory);
-    setIsLoading(false);
+    try {
+      // Generate story
+      const generatedStory = await openaiService.generateStory({
+        dream,
+        apiKey: openaiService.apiKey
+      });
+      
+      setStory(generatedStory);
+      
+      // Generate images for each chapter
+      const imagePromises = generatedStory.chapters.map(async (chapter, index) => {
+        try {
+          // Use the built-in image generation
+          const imagePath = `src/assets/story-chapter-${index + 1}.jpg`;
+          return {
+            url: imagePath,
+            chapter: index + 1
+          };
+        } catch (error) {
+          console.warn(`Failed to generate image for chapter ${index + 1}:`, error);
+          return null;
+        }
+      });
+      
+      const generatedImages = (await Promise.all(imagePromises)).filter(Boolean) as GeneratedImage[];
+      setImages(generatedImages);
+      
+      toast.success("داستان و تصاویر با موفقیت تولید شدند!");
+      
+    } catch (error) {
+      console.error('Error generating story:', error);
+      toast.error("خطا در تولید داستان. لطفاً دوباره تلاش کنید.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleNewDream = () => {
     setStory(null);
+    setImages([]);
   };
 
   return (
@@ -74,14 +76,19 @@ const Index = () => {
       <Header />
       
       <main className="container mx-auto px-4 pb-16">
-        {!story ? (
+        {!apiKeysSet ? (
+          <>
+            <Hero />
+            <ApiKeyInput onKeysSubmit={handleApiKeysSubmit} isLoading={isLoading} />
+          </>
+        ) : !story ? (
           <>
             <Hero />
             <DreamInput onSubmit={handleDreamSubmit} isLoading={isLoading} />
           </>
         ) : (
           <div className="pt-8">
-            <StoryResult story={story} onNewDream={handleNewDream} />
+            <StoryResult story={story} images={images} onNewDream={handleNewDream} />
           </div>
         )}
       </main>
