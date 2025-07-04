@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function Header() {
   return (
@@ -16,17 +17,20 @@ export function Header() {
           </div>
         </div>
         
-        <nav className="hidden md:flex items-center gap-6">
-          <Button variant="ghost" size="sm">
-            📚 کتابخانه داستان‌ها
-          </Button>
-          <Button variant="ghost" size="sm">
-            💫 نمونه‌ها
-          </Button>
-          <Button variant="magic" size="sm">
-            🚀 شروع کنید
-          </Button>
-        </nav>
+        <div className="flex items-center gap-4">
+          <nav className="hidden md:flex items-center gap-6">
+            <Button variant="ghost" size="sm">
+              📚 کتابخانه داستان‌ها
+            </Button>
+            <Button variant="ghost" size="sm">
+              💫 نمونه‌ها
+            </Button>
+            <Button variant="magic" size="sm">
+              🚀 شروع کنید
+            </Button>
+          </nav>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

@@ -75,33 +75,46 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark dream theme */
+    --background: 235 50% 8%;
+    --foreground: 270 50% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 235 40% 12%;
+    --card-foreground: 270 50% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 235 40% 12%;
+    --popover-foreground: 270 50% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 259 94% 65%;
+    --primary-foreground: 235 50% 8%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 235 30% 18%;
+    --secondary-foreground: 270 50% 85%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 235 30% 18%;
+    --muted-foreground: 270 20% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 42 100% 75%;
+    --accent-foreground: 235 50% 8%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 270 50% 95%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 235 30% 20%;
+    --input: 235 30% 15%;
+    --ring: 259 94% 65%;
+
+    /* Dark dream-specific colors */
+    --dream-night: 235 80% 5%;
+    --dream-twilight: 250 60% 15%;
+    --dream-star: 42 100% 85%;
+    --dream-moon: 200 50% 90%;
+    
+    /* Dark gradients */
+    --gradient-dream: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+    --gradient-night: linear-gradient(180deg, hsl(var(--dream-night)) 0%, hsl(var(--dream-twilight)) 100%);
+    --gradient-soft: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--muted)) 100%);
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -120,5 +133,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Arial, sans-serif;
+    direction: rtl;
   }
 }
