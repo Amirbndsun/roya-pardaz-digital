@@ -4,9 +4,9 @@ export function Hero() {
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="space-y-4">
           <h2 className="text-5xl md:text-6xl font-bold bg-gradient-dream bg-clip-text text-transparent leading-tight">
-            خواب‌هایتان را
+            رویاهایتان را
             <br />
-            به داستان تبدیل کنید
+            به داستان‌های جادویی تبدیل کنید
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto" dir="rtl">
             با قدرت هوش مصنوعی، خواب‌های شما را به داستان‌های جذاب و تصاویر زیبا تبدیل می‌کنیم
