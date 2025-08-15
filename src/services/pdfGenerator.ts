@@ -1,128 +1,139 @@
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
-// Function to add Persian/Farsi font support
-const addFarsiFont = (doc: jsPDF) => {
-  // We'll use a web-safe approach by splitting text into lines
-  return doc;
+// Create HTML content for better Persian support
+const createStoryHTML = (story: string, title: string) => {
+  return `
+    <!DOCTYPE html>
+    <html dir="rtl" lang="fa">
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+        
+        body {
+          font-family: 'Vazirmatn', Arial, sans-serif;
+          direction: rtl;
+          text-align: right;
+          line-height: 1.8;
+          color: #2d3748;
+          background: white;
+          margin: 0;
+          padding: 40px;
+          font-size: 14px;
+        }
+        
+        .title {
+          font-size: 24px;
+          font-weight: 700;
+          color: #1e40af;
+          text-align: center;
+          margin-bottom: 30px;
+          border-bottom: 2px solid #e5e7eb;
+          padding-bottom: 15px;
+        }
+        
+        .chapter {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1d4ed8;
+          margin: 25px 0 15px 0;
+          line-height: 1.6;
+        }
+        
+        .paragraph {
+          margin-bottom: 15px;
+          text-align: justify;
+          line-height: 2;
+        }
+        
+        .footer {
+          position: fixed;
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          font-size: 12px;
+          color: #6b7280;
+        }
+        
+        @media print {
+          body { margin: 0; padding: 30px; }
+          .footer { position: fixed; bottom: 15px; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="title">${title}</div>
+      ${story.split('\n\n').map(paragraph => {
+        const cleanParagraph = paragraph.trim();
+        if (cleanParagraph.includes('**')) {
+          const chapterTitle = cleanParagraph.replace(/\*\*/g, '');
+          return `<div class="chapter">${chapterTitle}</div>`;
+        } else if (cleanParagraph) {
+          return `<div class="paragraph">${cleanParagraph}</div>`;
+        }
+        return '';
+      }).join('')}
+      <div class="footer">تاریخ تولید: ${new Date().toLocaleDateString('fa-IR')}</div>
+    </body>
+    </html>
+  `;
 };
 
 export const generateStoryPDF = async (story: string, title: string = "داستان خواب شما") => {
   try {
+    // Create a temporary container for the HTML content
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '-9999px';
+    container.style.width = '210mm'; // A4 width
+    container.style.background = 'white';
+    container.innerHTML = createStoryHTML(story, title);
+    
+    document.body.appendChild(container);
+    
+    // Wait for fonts to load
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Generate canvas from HTML
+    const canvas = await html2canvas(container, {
+      scale: 2, // Higher resolution
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      width: 794, // A4 width in pixels at 96 DPI
+      height: container.scrollHeight,
+    });
+    
+    // Remove temporary container
+    document.body.removeChild(container);
+    
+    // Create PDF
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4'
     });
-
-    // Set right-to-left direction
-    doc.setR2L(true);
     
-    // Set font
-    doc.setFont("helvetica");
+    const imgData = canvas.toDataURL('image/png');
+    const pageHeight = 297; // A4 height in mm
+    const pageWidth = 210; // A4 width in mm
+    const imgHeight = (canvas.height * pageWidth) / canvas.width;
     
-    // Add title
-    doc.setFontSize(20);
-    doc.setTextColor(66, 66, 66);
+    let heightLeft = imgHeight;
+    let position = 0;
     
-    // Calculate title position for RTL
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const titleWidth = doc.getTextWidth(title);
-    const titleX = pageWidth - titleWidth - 20;
+    // Add first page
+    doc.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
+    heightLeft -= pageHeight;
     
-    doc.text(title, titleX, 30);
-    
-    // Add decorative line
-    doc.setLineWidth(0.5);
-    doc.setDrawColor(100, 100, 100);
-    doc.line(20, 35, pageWidth - 20, 35);
-    
-    // Process story content
-    doc.setFontSize(12);
-    doc.setTextColor(40, 40, 40);
-    
-    // Split story into paragraphs and chapters
-    const paragraphs = story.split('\n\n').filter(p => p.trim() !== '');
-    let yPosition = 50;
-    const lineHeight = 7;
-    const marginLeft = 20;
-    const marginRight = 20;
-    const textWidth = pageWidth - marginLeft - marginRight;
-    
-    for (const paragraph of paragraphs) {
-      // Check if it's a chapter title (contains **)
-      if (paragraph.includes('**')) {
-        const chapterTitle = paragraph.replace(/\*\*/g, '').trim();
-        
-        // Add some space before chapter
-        yPosition += 10;
-        
-        // Chapter title formatting
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(30, 64, 175); // Blue color for chapters
-        
-        // Split chapter title into lines for RTL
-        const chapterLines = doc.splitTextToSize(chapterTitle, textWidth);
-        for (const line of chapterLines) {
-          if (yPosition > 270) {
-            doc.addPage();
-            yPosition = 30;
-          }
-          
-          const lineWidth = doc.getTextWidth(line);
-          const lineX = pageWidth - lineWidth - marginRight;
-          doc.text(line, lineX, yPosition);
-          yPosition += lineHeight + 2;
-        }
-        
-        yPosition += 5;
-        
-        // Reset to normal text formatting
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(40, 40, 40);
-        
-      } else {
-        // Regular paragraph
-        const cleanParagraph = paragraph.trim();
-        if (cleanParagraph) {
-          // Split paragraph into lines
-          const lines = doc.splitTextToSize(cleanParagraph, textWidth);
-          
-          for (const line of lines) {
-            if (yPosition > 270) {
-              doc.addPage();
-              yPosition = 30;
-            }
-            
-            const lineWidth = doc.getTextWidth(line);
-            const lineX = pageWidth - lineWidth - marginRight;
-            doc.text(line, lineX, yPosition);
-            yPosition += lineHeight;
-          }
-          
-          yPosition += 4; // Space between paragraphs
-        }
-      }
-    }
-    
-    // Add footer with page numbers
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(10);
-      doc.setTextColor(128, 128, 128);
-      
-      // Page number in RTL style
-      const pageText = `صفحه ${i} از ${pageCount}`;
-      const pageTextWidth = doc.getTextWidth(pageText);
-      doc.text(pageText, (pageWidth - pageTextWidth) / 2, 285);
-      
-      // Add creation date
-      const date = new Date().toLocaleDateString('fa-IR');
-      const dateText = `تاریخ تولید: ${date}`;
-      const dateWidth = doc.getTextWidth(dateText);
-      doc.text(dateText, pageWidth - dateWidth - 20, 290);
+    // Add additional pages if needed
+    while (heightLeft >= 0) {
+      position = heightLeft - imgHeight;
+      doc.addPage();
+      doc.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
+      heightLeft -= pageHeight;
     }
     
     // Generate filename with Persian date
