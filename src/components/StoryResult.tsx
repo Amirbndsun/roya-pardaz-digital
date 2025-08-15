@@ -1,6 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { generateStoryPDF } from "@/services/pdfGenerator";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface StoryResultProps {
   story: string;
@@ -8,9 +11,36 @@ interface StoryResultProps {
 }
 
 export function StoryResult({ story, onNewDream }: StoryResultProps) {
-  const handleDownloadPDF = () => {
-    // This will be implemented with actual PDF generation later
-    alert("قابلیت دانلود PDF به‌زودی اضافه خواهد شد!");
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const { toast } = useToast();
+
+  const handleDownloadPDF = async () => {
+    setIsGeneratingPDF(true);
+    
+    try {
+      const result = await generateStoryPDF(story, "داستان خواب شما");
+      
+      if (result.success) {
+        toast({
+          title: "✅ PDF با موفقیت تولید شد",
+          description: `فایل ${result.filename} دانلود شد`,
+        });
+      } else {
+        toast({
+          title: "❌ خطا در تولید PDF",
+          description: result.error || "لطفاً دوباره تلاش کنید",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "❌ خطا در تولید PDF",
+        description: "لطفاً دوباره تلاش کنید",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   const handleShareStory = () => {
@@ -41,8 +71,12 @@ export function StoryResult({ story, onNewDream }: StoryResultProps) {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="dream" onClick={handleDownloadPDF}>
-              📄 دانلود PDF
+            <Button 
+              variant="dream" 
+              onClick={handleDownloadPDF}
+              disabled={isGeneratingPDF}
+            >
+              {isGeneratingPDF ? "در حال تولید..." : "📄 دانلود PDF"}
             </Button>
             <Button variant="magic" onClick={handleShareStory}>
               🔗 اشتراک‌گذاری
